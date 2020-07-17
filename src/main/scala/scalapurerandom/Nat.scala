@@ -24,16 +24,20 @@ case object One extends Pos {
 
 case class More(value: Int) extends Pos
 
-object Nat {
+class PosHelper(val sc: StringContext) extends AnyVal {
+  def p(): Pos = mkPos(sc.parts.mkString.toInt)
+}
+
+class NatHelper(val sc: StringContext) extends AnyVal {
+  def n(): Nat = mkNat(sc.parts.mkString.toInt)
+}
+
+trait NatHelperTrait { self =>
   implicit def toInt(a: Nat): Int = a.value
 
-  implicit class PosHelper(val sc: StringContext) extends AnyVal {
-    def p(): Pos = mkPos(sc.parts.mkString.toInt)
-  }
+  implicit def wrapContextPos(sc: StringContext): PosHelper = new PosHelper(sc)
 
-  implicit class NatHelper(val sc: StringContext) extends AnyVal {
-    def n(): Nat = mkNat(sc.parts.mkString.toInt)
-  }
+  implicit def wrapContextNat(sc: StringContext): NatHelper = new NatHelper(sc)
 
   def mkPos(value: Int): Pos = {
     require(value > 0, "Only for positive numbers")
@@ -44,7 +48,7 @@ object Nat {
   }
 
   def mkNat(value: Int): Nat = {
-    require(value >= 0, "Only for natural nums")
+    require(value >= 0, "Only for natural numbers")
     value match {
       case 0 => Zero
       case _ => mkPos(value)
@@ -105,7 +109,7 @@ object Nat {
 
     override def zero: Nat = Zero
 
-    override def plus(x: Nat, y: Nat): Nat = Nat.sum(x, y)
+    override def plus(x: Nat, y: Nat): Nat = self.sum(x, y)
 
     override def times(x: Nat, y: Nat): Nat = prod(x, y)
   }

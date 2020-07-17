@@ -2,10 +2,7 @@ package scalapurerandom
 
 import algebra.ring.AdditiveSemigroup
 import algebra.ring.Field
-import scalapurerandom.RandomPure.Random
 import spire.implicits._
-import RandomPure._
-import BreezeInstances._
 
 class RandomSemi[T: AdditiveSemigroup] extends AdditiveSemigroup[Random[T]] {
   override def plus(xr: Random[T], yr: Random[T]): Random[T] =  for {
@@ -32,7 +29,7 @@ class RandomField[F : Field] extends RandomSemi[F] with Field[Random[F]] {
   } yield x * y
 }
 
-object RandomInstances {
+trait RandomInstances {
   implicit val randomDVSemi : AdditiveSemigroup[Random[DV]] = new RandomSemi[DV]
 
   implicit val randomDoubleField: Field[Random[Double]] = new RandomField[Double]

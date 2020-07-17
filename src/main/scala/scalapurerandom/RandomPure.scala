@@ -17,7 +17,7 @@ class MersenneTwisterImmutable(private val gen: MersenneTwister64) {
 }
 
 
-object RandomPure {
+trait RandomPure {
   type Gen = MersenneTwisterImmutable
   type Random[T] = State[Gen, T]
   def Random[T]  = State[Gen, T] _

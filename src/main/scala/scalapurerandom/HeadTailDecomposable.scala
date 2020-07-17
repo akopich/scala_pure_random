@@ -1,7 +1,6 @@
 package scalapurerandom
 
 import cats.data._
-import Nat._
 
 trait HeadTailDecomposable[F[_], G[_]] {
   def decompose[A](f : F[A]): (A, G[A])

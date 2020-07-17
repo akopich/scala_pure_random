@@ -2,13 +2,9 @@ package scalapurerandom.example
 
 import cats.implicits._
 import cats.effect._
-import scalapurerandom.RandomPure._
-import scalapurerandom.Nat._
-import scalapurerandom.Pos
-import breeze.linalg.{DenseVector, diag}
-import scalapurerandom.RandomInstances._
 import spire.syntax.field._
-
+import breeze.linalg.{DenseVector, diag}
+import scalapurerandom._
 
 object Example extends IOApp {
 
@@ -39,7 +35,7 @@ object Example extends IOApp {
     }
 
     val cochi: Random[Double] = standardNormal / standardNormal
-    val exampleCochi: Random[IO[Unit]] = sampleMeanVar(cochi, p"100000").map { case (mean, cov) => IO {
+    val exampleCochi: Random[IO[Unit]] = sampleMeanVar(cochi, p"1000").map { case (mean, cov) => IO {
         println(s"For Cauchy mean = $mean, variance(undefined, thus diverges) = $cov")
       }
     }

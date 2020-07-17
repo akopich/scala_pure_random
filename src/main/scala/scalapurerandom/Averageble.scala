@@ -2,7 +2,6 @@ package scalapurerandom
 
 
 import HeadTailDecomposable._
-import RandomPure._
 import algebra.instances.IntAlgebra
 import algebra.instances.DoubleAlgebra
 import algebra.ring.AdditiveSemigroup
