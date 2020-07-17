@@ -1,6 +1,6 @@
 package scalapurerandom
 
-import cats.data._
+import cats.data.NonEmptyVector
 import spire.algebra._
 
 import scala.collection.parallel.CollectionConverters._
@@ -122,7 +122,7 @@ object Nat {
   }
 
   implicit class PosTimesWrap(p: Pos) {
-    def times[T](f: => T): NonEmptyVector[T] = NonEmptyVector(f, dec(p) times f)
+    def times[T](f: => T): NEV[T] = NEV(f, dec(p) times f)
 
     def parTimes[T: ClassTag](f: => T): NonEmptyVector[T] = {
       val head +: tail = Vector.fill(p)(None).par.map(_ => f).seq

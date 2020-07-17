@@ -1,14 +1,13 @@
 package scalapurerandom
 
-import breeze.linalg._
 import breeze.numerics.log
-import cats._
-import cats.data._
+import cats.data.State
 import cats.implicits._
 import Averageble._
 import spire.random.rng.MersenneTwister64
-import TimesScalar.ops._
-import breeze.math.Field
+import scalapurerandom.TimesScalar.ops._
+import TimesScalar._
+import breeze.linalg.{DenseVector, cholesky}
 
 class MersenneTwisterImmutable(private val gen: MersenneTwister64) {
   def apply[T](action : MersenneTwister64 => T): (MersenneTwisterImmutable, T) = {
@@ -26,7 +25,7 @@ object RandomPure {
   def const[T](t: T): Random[T] = Random{ rng => (rng, t) }
 
   implicit class MultRandom[T: TimesScalar](r: Random[T]) {
-    def |*|(sr: Random[Double]): Random[T] = times(r, sr)
+    def *(sr: Random[Double]): Random[T] = times(r, sr)
   }
 
   implicit class RichRandom[T](r: Random[T]) {
@@ -36,7 +35,7 @@ object RandomPure {
   def times[T: TimesScalar](xr: Random[T], yr: Random[Double]): Random[T] = for {
     x <- xr
     y <- yr
-  } yield x |*| y
+  } yield x * y
 
   def mixture[T](ra: Random[T], rb: Random[T]): Random[T] = for {
     a <- ra
@@ -49,7 +48,7 @@ object RandomPure {
       seed <- long
     } yield getGen(seed)).toList.sequence
 
-  def randomSplit(n: Pos): Random[NonEmptyVector[Gen]] = (n times None).map {_ =>
+  def randomSplit(n: Pos): Random[NEV[Gen]] = (n times None).map {_ =>
     long.map(getGen)
   } sequence
 

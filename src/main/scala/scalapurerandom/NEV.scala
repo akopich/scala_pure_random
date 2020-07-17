@@ -1,6 +1,6 @@
 package scalapurerandom
 
-import cats.data._
+import cats.data.NonEmptyVector
 
 object NEV {
 
