@@ -2,7 +2,7 @@ package scalapurerandom
 
 import cats.data.NonEmptyVector
 
-object NEV {
+trait NEVHelper {
 
   def NEV[A](a: A): NEV[A] = NonEmptyVector(a, Vector())
 

@@ -126,7 +126,7 @@ trait NatHelperTrait { self =>
   }
 
   implicit class PosTimesWrap(p: Pos) {
-    def times[T](f: => T): NEV[T] = NEV(f, dec(p) times f)
+    def times[T](f: => T): NEV[T] = NonEmptyVector(f, dec(p) times f)
 
     def parTimes[T: ClassTag](f: => T): NonEmptyVector[T] = {
       val head +: tail = Vector.fill(p)(None).par.map(_ => f).seq

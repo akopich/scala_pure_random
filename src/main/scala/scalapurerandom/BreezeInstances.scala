@@ -9,7 +9,3 @@ class DVSemigroup extends AdditiveSemigroup[DV] {
 class DMSemigroup extends AdditiveSemigroup[DM] {
   override def plus(x: DM, y: DM): DM = x + y
 }
-
-trait BreezeInstances {
-  implicit val dvIsSemi = new DVSemigroup
-}

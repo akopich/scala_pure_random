@@ -5,7 +5,7 @@ package object scalapurerandom extends NatHelperTrait
   with RandomInstances
   with RandomPure
   with TimesScalarHelper
-  with BreezeInstances {
+  with NEVHelper {
 
   type NEV[A] = NonEmptyVector[A]
   def NEV[A] = NonEmptyVector[A] _
