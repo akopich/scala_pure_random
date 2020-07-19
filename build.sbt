@@ -25,5 +25,6 @@ libraryDependencies  ++= Seq(
   "org.scalanlp" %% "breeze-viz" % "1.0"
 )
 
+
 libraryDependencies += "org.typelevel" %% "simulacrum" % "1.0.0"
 

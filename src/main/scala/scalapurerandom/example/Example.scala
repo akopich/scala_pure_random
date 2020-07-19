@@ -13,7 +13,9 @@ object Example extends IOApp {
 
     val nonStandardNormal: Random[Double] = standardNormal * const(200d) + const(100d)
 
-    val n: Pos = p"1000"
+//    val parallelExample: RandomT[IO, Unit] = sampleMeanPar(nonStandardNormal, p"10000").map(println)
+
+    val n: Pos = p"100000"
 
     val exampleWithDoubles : Random[IO[Unit]] = for {
       (sm, sv)   <- sampleMeanVar(standardNormal, n)
@@ -35,7 +37,7 @@ object Example extends IOApp {
     }
 
     val cochi: Random[Double] = standardNormal / standardNormal
-    val exampleCochi: Random[IO[Unit]] = sampleMeanVar(cochi, p"1000").map { case (mean, cov) => IO {
+    val exampleCochi: Random[IO[Unit]] = sampleMeanVar(cochi, n).map { case (mean, cov) => IO {
         println(s"For Cauchy mean = $mean, variance(undefined, thus diverges) = $cov")
       }
     }

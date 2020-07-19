@@ -1,13 +1,19 @@
 package scalapurerandom
 
 import breeze.numerics.log
-import cats.data.State
-import cats.implicits._
 import Averageble._
+import cats.data.{IndexedStateT, State, StateT}
 import spire.random.rng.MersenneTwister64
 import scalapurerandom.TimesScalar.ops._
-import TimesScalar._
 import breeze.linalg.{DenseVector, cholesky}
+import cats._
+import cats.implicits._
+import cats.effect._
+import cats.effect.IO._
+import cats.effect.IO
+import cats.data.IndexedStateT._
+import cats.arrow.FunctionK.lift
+
 
 class MersenneTwisterImmutable(private val gen: MersenneTwister64) {
   def apply[T](action : MersenneTwister64 => T): (MersenneTwisterImmutable, T) = {
@@ -21,6 +27,8 @@ trait RandomPure {
   type Gen = MersenneTwisterImmutable
   type Random[T] = State[Gen, T]
   def Random[T]  = State[Gen, T] _
+
+  type RandomT[F[_], T] = StateT[F, Gen, T]
 
   def const[T](t: T): Random[T] = Random{ rng => (rng, t) }
 
@@ -93,31 +101,40 @@ trait RandomPure {
     standardGaussian(cov.rows).map(L * _)
   }
 
-  def sampleMean[T: Averageble](random: Random[T], n : Pos): Random[T] = (n times None).traverse(_ => random).map(x => average(x))
+  def sampleMeanPar[T: Averageble](random: Random[T], n: Pos)(implicit cs: ContextShift[IO]): RandomT[IO, T] = {
+    randomSplit(n).map { gens =>
+      gens.parTraverse(gen => IO { random.sample(gen) } ).map(samples => average(samples))
+    }.transformF { eval =>
+      val (s, iot) = eval.value
+      iot.map(t => (s,t))
+    }
+  }
 
-  def sampleMeanVar(random: Random[Double], n: Pos): Random[(Double, Double)] = {
-    val samplesR = (n times None).traverse(_ => random)
+  def sampleMean[T: Averageble](random: Random[T], n : Pos): Random[T] =
+    replicaterandom(random, n).map(x => average(x))
+
+  private def replicaterandom[T: Averageble](random: Random[T], n: Pos) = {
+    random.replicateA(n).map(x => toNEV(x.toVector))
+  }
+
+  def sampleMeanVarGeneralized[T: Averageble, Outer: Averageble](random: Random[T], n: Pos)(minus: (T, T) => T)(outer: T => Outer) = {
+    val samplesR = replicaterandom(random, n)
     val meanR = samplesR.map(x => average(x))
-
     for {
       s <- samplesR
       m <- meanR
     } yield (m, average(s.map { v =>
-      val centered = v - m
-      centered * centered
+      val centered = minus(v, m)
+      outer(centered)
     }))
   }
 
+  def sampleMeanVar(random: Random[Double], n: Pos): Random[(Double, Double)] = {
+    sampleMeanVarGeneralized(random, n) { (v, m) => v - m} { centered => centered * centered }
+  }
+
   def sampleMeanAndCov(random: Random[DV], n : Pos): Random[(DV, DM)] = {
-    val samplesR = (n times None).traverse(_ => random)
-    val meanR = samplesR.map(x => average(x))
-    for {
-      s <- samplesR
-      m <- meanR
-    } yield (m, average(s.map { v =>
-      val centered = v - m
-      centered * centered.t
-    }))
+    sampleMeanVarGeneralized(random, n) { (v, m) => v - m} { centered => centered * centered.t }
   }
 }
 
