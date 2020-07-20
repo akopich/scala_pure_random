@@ -107,7 +107,7 @@ trait RandomPure {
     }.transformF { eval =>
       val (s, iot) = eval.value
       iot.map(t => (s,t))
-    }
+    }.transformF { ioGT => ioGT}
   }
 
   def sampleMean[T: Averageble](random: Random[T], n : Pos): Random[T] =
@@ -118,15 +118,13 @@ trait RandomPure {
   }
 
   def sampleMeanVarGeneralized[T: Averageble, Outer: Averageble](random: Random[T], n: Pos)(minus: (T, T) => T)(outer: T => Outer) = {
-    val samplesR = replicaterandom(random, n)
-    val meanR = samplesR.map(x => average(x))
-    for {
-      s <- samplesR
-      m <- meanR
-    } yield (m, average(s.map { v =>
-      val centered = minus(v, m)
-      outer(centered)
-    }))
+    replicaterandom(random, n).map { s =>
+      val m = average(s)
+      (m, average(s.map { v =>
+        val centered = minus(v, m)
+        outer(centered)
+      }))
+    }
   }
 
   def sampleMeanVar(random: Random[Double], n: Pos): Random[(Double, Double)] = {

@@ -6,14 +6,13 @@ import spire.syntax.field._
 import breeze.linalg.{DenseVector, diag}
 import scalapurerandom._
 
+
 object Example extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
     val standardNormal: Random[Double] = gaussian(0d, 1d)
 
     val nonStandardNormal: Random[Double] = standardNormal * const(200d) + const(100d)
-
-//    val parallelExample: RandomT[IO, Unit] = sampleMeanPar(nonStandardNormal, p"10000").map(println)
 
     val n: Pos = p"100000"
 
