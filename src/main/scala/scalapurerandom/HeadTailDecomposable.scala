@@ -24,11 +24,11 @@ object HeadTailDecomposable {
   }
 
   implicit val listHasSize: HasSize[List] = new HasSize[List] {
-    override def size[A](f: List[A]): Nat = mkNat(f.size)
+    override def size[A](f: List[A]): Nat = Nat(f.size)
   }
 
   implicit val vecHasSize = new HasSize[Vector] {
-    override def size[A](f: Vector[A]): Nat = mkNat(f.size)
+    override def size[A](f: Vector[A]): Nat = Nat(f.size)
   }
 
   def size[F[_], G[_], A](nel: F[A])(implicit d: HeadTailDecomposable[F, G], s: HasSize[G]): Pos = {

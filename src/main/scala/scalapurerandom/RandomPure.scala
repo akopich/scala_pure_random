@@ -114,7 +114,7 @@ trait RandomPure {
     replicaterandom(random, n).map(x => average(x))
 
   private def replicaterandom[T: Averageble](random: Random[T], n: Pos) = {
-    random.replicateA(n).map(x => toNEV(x.toVector))
+    replicateA(n, random).map(x => toNEV(x.toVector))
   }
 
   def sampleMeanVarGeneralized[T: Averageble, Outer: Averageble](random: Random[T], n: Pos)(minus: (T, T) => T)(outer: T => Outer) = {

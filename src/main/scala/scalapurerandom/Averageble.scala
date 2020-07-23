@@ -26,19 +26,19 @@ object Averageble {
   def average[T: Averageble](a: NEV[T]): T = a.reduce(implicitly[Averageble[T]].additive) |/| size(a)
 
   implicit def intAverageble: IntAlgebra with Averageble[Int] = new IntAlgebra with Averageble[Int] {
-    override def |/|(x: Int, cnt: Pos): Int = x / cnt
+    override def |/|(x: Int, cnt: Pos): Int = x / cnt.toInt
   }
 
   implicit def doubleAverageble: Averageble[Double] = new DoubleAlgebra with Averageble[Double]  {
-    override def |/|(x: Double, cnt: Pos): Double = x / cnt
+    override def |/|(x: Double, cnt: Pos): Double = x / cnt.toInt
   }
 
   implicit def DVAverageble: Averageble[DV] = new DVSemigroup with Averageble[DV] {
-    override def |/|(x: DV, cnt: Pos): DV = x / cnt.toDouble
+    override def |/|(x: DV, cnt: Pos): DV = x / cnt.toInt.toDouble
   }
 
   implicit def DMAverageble: Averageble[DM] = new DMSemigroup with Averageble[DM] {
-    override def |/|(x: DM, cnt: Pos): DM = x / cnt.toDouble
+    override def |/|(x: DM, cnt: Pos): DM = x / cnt.toInt.toDouble
   }
 
   implicit def functionAverageble[A, B: Averageble]: Averageble[A => B] = new Averageble[A => B] {

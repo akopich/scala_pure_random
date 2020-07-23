@@ -10,6 +10,8 @@ package object scalapurerandom extends NatHelperTrait
   type NEV[A] = NonEmptyVector[A]
   def NEV[A] = NonEmptyVector[A] _
 
+
+
   type DV = DenseVector[Double]
 
   type DM = DenseMatrix[Double]
