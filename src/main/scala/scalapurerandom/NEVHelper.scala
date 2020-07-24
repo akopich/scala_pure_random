@@ -25,6 +25,6 @@ trait NEVHelper {
     case _ => throw EmptySeqToNEVException()
   }
 
-  def group[T](ts: NEV[T], size: Pos): NEV[NEV[T]] = toNEV(ts.toVector.grouped(size.toInt).map(toNEV).toSeq)
+  def group[T](ts: NEV[T], size: PosInt): NEV[NEV[T]] = toNEV(ts.toVector.grouped(size.toInt).map(toNEV).toSeq)
 }
 

@@ -5,7 +5,8 @@ package object scalapurerandom extends NatHelperTrait
   with RandomInstances
   with RandomPure
   with TimesScalarHelper
-  with NEVHelper {
+  with NEVHelper
+  with HasSizeHelper{
 
   type NEV[A] = NonEmptyVector[A]
   def NEV[A] = NonEmptyVector[A] _

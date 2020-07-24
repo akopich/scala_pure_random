@@ -56,7 +56,7 @@ trait RandomPure {
       seed <- long
     } yield getGen(seed)).toList.sequence
 
-  def randomSplit(n: Pos): Random[NEV[Gen]] = (n times None).map {_ =>
+  def randomSplit(n: PosInt): Random[NEV[Gen]] = (n times None).map { _ =>
     long.map(getGen)
   } sequence
 
@@ -101,7 +101,7 @@ trait RandomPure {
     standardGaussian(cov.rows).map(L * _)
   }
 
-  def sampleMeanPar[T: Averageble](random: Random[T], n: Pos)(implicit cs: ContextShift[IO]): RandomT[IO, T] = {
+  def sampleMeanPar[T: Averageble](random: Random[T], n: PosInt)(implicit cs: ContextShift[IO]): RandomT[IO, T] = {
     randomSplit(n).map { gens =>
       gens.parTraverse(gen => IO { random.sample(gen) } ).map(samples => average(samples))
     }.transformF { eval =>
@@ -110,14 +110,14 @@ trait RandomPure {
     }.transformF { ioGT => ioGT}
   }
 
-  def sampleMean[T: Averageble](random: Random[T], n : Pos): Random[T] =
+  def sampleMean[T: Averageble](random: Random[T], n : PosInt): Random[T] =
     replicaterandom(random, n).map(x => average(x))
 
-  private def replicaterandom[T: Averageble](random: Random[T], n: Pos) = {
+  private def replicaterandom[T: Averageble](random: Random[T], n: PosInt) = {
     replicateA(n, random).map(x => toNEV(x.toVector))
   }
 
-  def sampleMeanVarGeneralized[T: Averageble, Outer: Averageble](random: Random[T], n: Pos)(minus: (T, T) => T)(outer: T => Outer) = {
+  def sampleMeanVarGeneralized[T: Averageble, Outer: Averageble](random: Random[T], n: PosInt)(minus: (T, T) => T)(outer: T => Outer) = {
     replicaterandom(random, n).map { s =>
       val m = average(s)
       (m, average(s.map { v =>
@@ -127,11 +127,11 @@ trait RandomPure {
     }
   }
 
-  def sampleMeanVar(random: Random[Double], n: Pos): Random[(Double, Double)] = {
+  def sampleMeanVar(random: Random[Double], n: PosInt): Random[(Double, Double)] = {
     sampleMeanVarGeneralized(random, n) { (v, m) => v - m} { centered => centered * centered }
   }
 
-  def sampleMeanAndCov(random: Random[DV], n : Pos): Random[(DV, DM)] = {
+  def sampleMeanAndCov(random: Random[DV], n : PosInt): Random[(DV, DM)] = {
     sampleMeanVarGeneralized(random, n) { (v, m) => v - m} { centered => centered * centered.t }
   }
 }
