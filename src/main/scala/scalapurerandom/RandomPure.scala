@@ -101,24 +101,19 @@ trait RandomPure {
     standardGaussian(cov.rows).map(L * _)
   }
 
-  def sampleMeanPar[T: Averageble](random: Random[T], n: PosInt)(implicit cs: ContextShift[IO]): RandomT[IO, T] = {
+  def sampleMeanPar[T: Averageble](random: Random[T], n: PosInt)(implicit cs: ContextShift[IO]): Random[IO[T]] = {
     randomSplit(n).map { gens =>
       gens.parTraverse(gen => IO { random.sample(gen) } ).map(samples => average(samples))
-    }.transformF { eval =>
-      val (s, iot) = eval.value
-      iot.map(t => (s,t))
-    }.transformF { ioGT => ioGT}
+    }
   }
 
   def sampleMean[T: Averageble](random: Random[T], n : PosInt): Random[T] =
-    replicaterandom(random, n).map(x => average(x))
+    replicateA(n, random).map(x => average(x))
 
-  private def replicaterandom[T: Averageble](random: Random[T], n: PosInt) = {
-    replicateA(n, random).map(x => toNEV(x.toVector))
-  }
-
-  def sampleMeanVarGeneralized[T: Averageble, Outer: Averageble](random: Random[T], n: PosInt)(minus: (T, T) => T)(outer: T => Outer) = {
-    replicaterandom(random, n).map { s =>
+  def sampleMeanVarGeneralized[T: Averageble, Outer: Averageble](random: Random[T], n: PosInt)
+                                                                (minus: (T, T) => T)
+                                                                (outer: T => Outer): Random[(T, Outer)] = {
+    replicateA(n, random).map { s =>
       val m = average(s)
       (m, average(s.map { v =>
         val centered = minus(v, m)
