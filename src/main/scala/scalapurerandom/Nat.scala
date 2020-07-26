@@ -51,7 +51,7 @@ trait NatHelperTrait { self =>
 
   implicit def wrapContextNat(sc: StringContext): NatHelper = new NatHelper(sc)
 
-  def inc(n : Nat): PosInt = PosInt(n)
+  def inc(n : Nat): PosInt = new PosInt(n)
 
   def dec(p: PosInt): Nat = p.dec
 

@@ -5,7 +5,6 @@ import cats.implicits._
 import cats.effect._
 import spire.syntax.field._
 import breeze.linalg.{DenseVector, diag}
-import cats.data.NonEmptyList
 import scalapurerandom._
 
 
