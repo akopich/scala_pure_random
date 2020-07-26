@@ -17,7 +17,7 @@ trait Averageble[T] extends AdditiveSemigroup[T] { self =>
   }
 }
 
-object Averageble {
+trait AveragebleHelper {
   implicit class AvgWrapper[T:Averageble](value: T) {
     def |/|(cnt: PosInt): T = implicitly[Averageble[T]].|/|(value, cnt)
   }

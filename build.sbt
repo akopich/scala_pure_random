@@ -6,7 +6,6 @@ scalaVersion := "2.13.3"
 
 scalacOptions ++= Seq("-deprecation", "-feature", "-language:postfixOps", "-language:implicitConversions", "-Ymacro-annotations")
 
-
 addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
 
 libraryDependencies += "org.typelevel" %% "cats-core" % "2.1.1"

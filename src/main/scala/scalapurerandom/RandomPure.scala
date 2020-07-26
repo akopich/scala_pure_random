@@ -1,7 +1,6 @@
 package scalapurerandom
 
 import breeze.numerics.log
-import Averageble._
 import cats.data.{IndexedStateT, State, StateT}
 import spire.random.rng.MersenneTwister64
 import scalapurerandom.TimesScalar.ops._

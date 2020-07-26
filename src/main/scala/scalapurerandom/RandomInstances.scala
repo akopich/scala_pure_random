@@ -3,7 +3,6 @@ package scalapurerandom
 import algebra.ring.AdditiveSemigroup
 import algebra.ring.Field
 import spire.implicits._
-import Averageble._
 
 class RandomSemi[T: AdditiveSemigroup] extends AdditiveSemigroup[Random[T]] {
   override def plus(xr: Random[T], yr: Random[T]): Random[T] =  for {
