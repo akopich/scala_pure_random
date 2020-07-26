@@ -1,5 +1,6 @@
 package scalapurerandom.example
 
+import algebra.ring.AdditiveSemigroup
 import cats.implicits._
 import cats.effect._
 import spire.syntax.field._
@@ -25,7 +26,7 @@ object Example extends IOApp {
       println(s"For non-standard normal mean = $nsm, variance = $nsv")
     }
 
-    val mean = DenseVector(1d, 10d, 100d)
+    val mean: DV = DenseVector(1d, 10d, 100d)
 
     val multivariateNormal = centeredGaussian(diag(DenseVector(1d, 2d, 3d))) + const(mean)
     val exampleWithVectors: Random[IO[Unit]] = sampleMeanAndCov(multivariateNormal, n).map { case (mean, cov) => IO {

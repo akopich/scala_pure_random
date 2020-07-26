@@ -7,7 +7,8 @@ package object scalapurerandom extends NatHelperTrait
   with TimesScalarHelper
   with NEVHelper
   with HasSizeHelper
-  with AveragebleHelper {
+  with AveragebleHelper
+  with BreezeInstances {
 
   type NEV[A] = NonEmptyVector[A]
   def NEV[A] = NonEmptyVector[A] _

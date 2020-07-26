@@ -30,7 +30,7 @@ class RandomField[F : Field] extends RandomSemi[F] with Field[Random[F]] {
 }
 
 trait RandomInstances {
-  implicit val randomDVSemi : AdditiveSemigroup[Random[DV]] = new RandomSemi[DV]
+  implicit val randomDVSemi: AdditiveSemigroup[Random[DV]] = new RandomSemi[DV]
 
   implicit val randomDoubleField: Field[Random[Double]] = new RandomField[Double]
 }
