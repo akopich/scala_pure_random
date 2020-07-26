@@ -1,13 +1,16 @@
 package scalapurerandom
 
+import algebra.ring.{AdditiveMonoid, AdditiveSemigroup, MultiplicativeMonoid, MultiplicativeSemigroup, Rng}
 import cats.Applicative
 import cats.data.NonEmptyVector
+import cats.kernel.Eq
+import spire.syntax.field._
+import cats.implicits._
 
 import scala.collection.parallel.CollectionConverters._
 import scala.reflect.ClassTag
 
-class Nat(val toInt: Int) extends AnyVal {
-
+case class Nat(toInt: Int) {
   override def toString: String = s"Nat($toInt)"
 }
 
@@ -45,8 +48,6 @@ trait NatHelperTrait { self =>
     F.map2(fa, tail)(NonEmptyVector.apply)
   }
 
-  implicit def toInt(a: Nat): Int = a.toInt
-
   implicit def wrapContextPos(sc: StringContext): PosHelper = new PosHelper(sc)
 
   implicit def wrapContextNat(sc: StringContext): NatHelper = new NatHelper(sc)
@@ -56,7 +57,7 @@ trait NatHelperTrait { self =>
   def dec(p: PosInt): Nat = p.dec
 
   implicit class NatTimesWrap(n: Nat) {
-    def times[T](f: => T): Vector[T] = Vector.fill(n)(f)
+    def times[T](f: => T): Vector[T] = Vector.fill(n.toInt)(f)
 
     def parTimes[T: ClassTag](f: => T): Vector[T] = (n times None).par map (_ => f) seq
   }
@@ -70,4 +71,31 @@ trait NatHelperTrait { self =>
     }
   }
 
+  implicit lazy val natIsAdditiveMonoid: AdditiveMonoid[Nat] = new AdditiveMonoid[Nat] {
+    override def zero: Nat = n"0"
+
+    override def plus(x: Nat, y: Nat): Nat = new Nat(x.toInt + y.toInt)
+  }
+
+  implicit lazy val natIsMultMonoid: MultiplicativeSemigroup[Nat] = (x: Nat, y: Nat) => Nat(x.toInt * y.toInt)
+
+  implicit lazy val posIsAdditiveSemigroup: AdditiveSemigroup[PosInt] = (x: PosInt, y: PosInt) => inc(x.dec + y.dec)
+
+  implicit lazy val posIsMultSemigroup: MultiplicativeMonoid[PosInt] = new MultiplicativeMonoid[PosInt] {
+    override def one: PosInt = p"1"
+
+    override def times(x: PosInt, y: PosInt): PosInt = inc(x.dec * y.dec + x.dec + y.dec)
+  }
+
+  implicit lazy val eqNat = new Eq[Nat] {
+    override def eqv(x: Nat, y: Nat): Boolean = x.toInt == y.toInt
+  }
+
+  implicit lazy val eqPos = new Eq[PosInt] {
+    override def eqv(x: PosInt, y: PosInt): Boolean = x.dec === y.dec
+  }
+
+  def pow(base: PosInt, nat: Nat): PosInt = (nat times base).foldLeft(p"1")(posIsMultSemigroup.times)
+
+  def pow(base: PosInt, pos: PosInt): PosInt = base * pow(base, pos.dec)
 }
