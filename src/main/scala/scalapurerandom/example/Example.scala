@@ -1,6 +1,5 @@
 package scalapurerandom.example
 
-import algebra.ring.AdditiveSemigroup
 import cats.implicits._
 import cats.effect._
 import spire.syntax.field._

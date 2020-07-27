@@ -25,9 +25,10 @@ class MersenneTwisterImmutable(private val gen: MersenneTwister64) {
 trait RandomPure {
   type Gen = MersenneTwisterImmutable
   type Random[T] = State[Gen, T]
-  def Random[T]  = State[Gen, T] _
+  def  Random[T]  = State[Gen, T] _
 
   type RandomT[F[_], T] = StateT[F, Gen, T]
+  def  RandomT[F[_]: Applicative, T] = StateT[F, Gen, T] _
 
   def const[T](t: T): Random[T] = Random{ rng => (rng, t) }
 
@@ -106,12 +107,12 @@ trait RandomPure {
     }
   }
 
-  def sampleMean[T: Averageble](random: Random[T], n : PosInt): Random[T] =
+  def sampleMean[M[_]: Monad, T: Averageble](random: RandomT[M, T], n : PosInt): RandomT[M, T] =
     replicateA(n, random).map(x => average(x))
 
-  def sampleMeanVarGeneralized[T: Averageble, Outer: Averageble](random: Random[T], n: PosInt)
-                                                                (minus: (T, T) => T)
-                                                                (outer: T => Outer): Random[(T, Outer)] = {
+  def sampleMeanVarGeneralized[M[_]: Monad, T: Averageble, Outer: Averageble](random: RandomT[M, T], n: PosInt)
+                                                                             (minus: (T, T) => T)
+                                                                             (outer: T => Outer): RandomT[M, (T, Outer)] = {
     replicateA(n, random).map { s =>
       val m = average(s)
       (m, average(s.map { v =>
@@ -121,11 +122,11 @@ trait RandomPure {
     }
   }
 
-  def sampleMeanVar(random: Random[Double], n: PosInt): Random[(Double, Double)] = {
+  def sampleMeanVar[M[_]: Monad](random: RandomT[M, Double], n: PosInt): RandomT[M, (Double, Double)] = {
     sampleMeanVarGeneralized(random, n) { (v, m) => v - m} { centered => centered * centered }
   }
 
-  def sampleMeanAndCov(random: Random[DV], n : PosInt): Random[(DV, DM)] = {
+  def sampleMeanAndCov[M[_]: Monad](random: RandomT[M, DV], n : PosInt): RandomT[M, (DV, DM)] = {
     sampleMeanVarGeneralized(random, n) { (v, m) => v - m} { centered => centered * centered.t }
   }
 }
