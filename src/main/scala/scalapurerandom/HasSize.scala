@@ -8,7 +8,9 @@ trait HasSize[F[_], S] {
 }
 
 trait HasSizeHelper { self =>
-  implicit def foldableHasSize[F[_]](implicit f: Foldable[F]): HasSize[F, Nat] = fa => Nat(f.size(fa).toInt)
+  implicit lazy val vectorHasSize: HasSize[Vector, Nat] = fa => Nat(fa.size)
+
+  implicit lazy val listHasSize: HasSize[List, Nat] = fa => Nat(fa.size)
 
   implicit lazy val nelIsReducible: NonEmptyReducible[NEL, List] = new NonEmptyReducible[NEL, List] {
     override def split[A](fa: NEL[A]): (A, List[A]) = (fa.head, fa.tail)
