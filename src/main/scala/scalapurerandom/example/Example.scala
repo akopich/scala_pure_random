@@ -1,5 +1,7 @@
 package scalapurerandom.example
 
+import cats._
+import cats.data._
 import cats.implicits._
 import cats.effect._
 import spire.syntax.field._
@@ -10,6 +12,12 @@ import scalapurerandom._
 object Example extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
+
+    implicitly[HasSize[List, Nat]]
+    implicitly[HasSize[NonEmptyList, PosInt]]
+    implicitly[NonEmptyReducible[NonEmptyList,List]]
+
+    val wtf = nonEmptyReducibleSize[NonEmptyList, List]
     val standardNormal: Random[Double] = gaussian(0d, 1d)
 
     val nonStandardNormal: Random[Double] = standardNormal * const(200d) + const(100d)

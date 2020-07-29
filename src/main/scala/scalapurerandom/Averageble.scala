@@ -4,6 +4,7 @@ package scalapurerandom
 import algebra.instances.IntAlgebra
 import algebra.instances.DoubleAlgebra
 import algebra.ring.AdditiveSemigroup
+import cats.{NonEmptyReducible, Reducible}
 import cats.data.Reader
 import spire.implicits._
 
@@ -25,7 +26,8 @@ trait AveragebleHelper {
     def |/|(cnt: PosInt): T = implicitly[Averageble[T]].|/|(value, cnt)
   }
 
-  def average[T: Averageble](a: NEL[T]): T = a.reduce(implicitly[Averageble[T]].semi.additive) |/| size(a)
+  def average[F[_], T](fa: F[T])(implicit r: Reducible[F], a: Averageble[T], s: HasSize[F, PosInt]): T =
+    r.reduce(fa)(a.semi.additive) |/| s.size(fa)
 
   implicit def intAverageble = new Averageble[Int] {
     override val semi: AdditiveSemigroup[Int] = new IntAlgebra
