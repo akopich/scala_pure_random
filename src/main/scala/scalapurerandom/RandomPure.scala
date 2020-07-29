@@ -6,12 +6,11 @@ import spire.random.rng.MersenneTwister64
 import scalapurerandom.TimesScalar.ops._
 import breeze.linalg.{DenseVector, cholesky}
 import cats._
+import cats.data._
 import cats.implicits._
 import cats.effect._
 import cats.effect.IO._
 import cats.effect.IO
-import cats.data._
-import cats.arrow.FunctionK.lift
 
 
 class MersenneTwisterImmutable(private val gen: MersenneTwister64) {
@@ -104,11 +103,11 @@ trait RandomPure {
     standardGaussian(cov.rows).map(L * _)
   }
 
-  def sampleMeanPar[M[_]:Monad, T: Averageble](random: RandomT[M, T], n: PosInt)
-                                           (implicit cs: ContextShift[IO]) = {
-    lift[M, NEL[Gen]](randomSplit(n)).map { gens =>
-      val nel: IO[NEL[M[T]]] = gens.parTraverse(gen => IO { random.runA(gen) } )
-      nel.map(samples => samples.sequence.map(s => average(s)))
+  def sampleMeanPar[T: Averageble](random: Random[T], n: PosInt)
+                                           (implicit cs: ContextShift[IO]): Random[IO[T]] = {
+    randomSplit(n).map { gens =>
+      gens.parTraverse(gen => IO { random.sample(gen) } )
+          .map(s => average(s))
     }
   }
 
