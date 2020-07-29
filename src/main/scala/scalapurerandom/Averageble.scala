@@ -25,7 +25,7 @@ trait AveragebleHelper {
     def |/|(cnt: PosInt): T = implicitly[Averageble[T]].|/|(value, cnt)
   }
 
-  def average[T: Averageble](a: NEV[T]): T = a.reduce(implicitly[Averageble[T]].semi.additive) |/| size(a)
+  def average[T: Averageble](a: NEL[T]): T = a.reduce(implicitly[Averageble[T]].semi.additive) |/| size(a)
 
   implicit def intAverageble = new Averageble[Int] {
     override val semi: AdditiveSemigroup[Int] = new IntAlgebra

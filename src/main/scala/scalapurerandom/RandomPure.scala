@@ -1,7 +1,7 @@
 package scalapurerandom
 
 import breeze.numerics.log
-import cats.data.{IndexedStateT, State, StateT}
+import cats.data.{IndexedStateT, NonEmptyList, NonEmptyVector, State, StateT}
 import spire.random.rng.MersenneTwister64
 import scalapurerandom.TimesScalar.ops._
 import breeze.linalg.{DenseVector, cholesky}
@@ -10,7 +10,7 @@ import cats.implicits._
 import cats.effect._
 import cats.effect.IO._
 import cats.effect.IO
-import cats.data.IndexedStateT._
+import cats.data._
 import cats.arrow.FunctionK.lift
 
 
@@ -28,7 +28,7 @@ trait RandomPure {
   def  Random[T]  = State[Gen, T] _
 
   type RandomT[F[_], T] = StateT[F, Gen, T]
-  def  RandomT[F[_]: Applicative, T] = StateT[F, Gen, T] _
+  def  RandomT[F[_]: Monad, T] = StateT[F, Gen, T] _
 
   def const[T](t: T): Random[T] = Random{ rng => (rng, t) }
 
@@ -51,14 +51,17 @@ trait RandomPure {
     p <- uniform01
   } yield if (p > 0.5d) a else b
 
+  def lift[M[_]: Monad, T](r: Random[T]): RandomT[M, T] = r.transformF(eval => implicitly[Monad[M]].pure(eval.value))
+
   def randomSplit(n: Int): Random[List[Gen]] = (0 until n).view.map(_ =>
     for {
       seed <- long
     } yield getGen(seed)).toList.sequence
 
-  def randomSplit(n: PosInt): Random[NEV[Gen]] = (n times None).map { _ =>
-    long.map(getGen)
-  } sequence
+  def randomSplit(n: PosInt): Random[NEL[Gen]] = for {
+    tail <- randomSplit(n.dec.toInt)
+    seed <- long
+  } yield NonEmptyList(getGen(seed), tail)
 
   def next(bits: Int): Random[Int] = Random { gen =>
     gen(_.nextBits(bits))
@@ -90,7 +93,7 @@ trait RandomPure {
     else location - scale * log(2 * (1 - u))
   }
 
-  def getGen(seed: Long) = new MersenneTwisterImmutable(MersenneTwister64.fromTime(time =  seed))
+  def getGen(seed: Long): Gen = new MersenneTwisterImmutable(MersenneTwister64.fromTime(time =  seed))
 
   def standardGaussian(dim: Int): Random[DV] = Random { gen =>
     gen(mt => DenseVector.fill(dim)(mt.nextGaussian()))
@@ -101,9 +104,11 @@ trait RandomPure {
     standardGaussian(cov.rows).map(L * _)
   }
 
-  def sampleMeanPar[T: Averageble](random: Random[T], n: PosInt)(implicit cs: ContextShift[IO]): Random[IO[T]] = {
-    randomSplit(n).map { gens =>
-      gens.parTraverse(gen => IO { random.sample(gen) } ).map(samples => average(samples))
+  def sampleMeanPar[M[_]:Monad, T: Averageble](random: RandomT[M, T], n: PosInt)
+                                           (implicit cs: ContextShift[IO]) = {
+    lift[M, NEL[Gen]](randomSplit(n)).map { gens =>
+      val nel: IO[NEL[M[T]]] = gens.parTraverse(gen => IO { random.runA(gen) } )
+      nel.map(samples => samples.sequence.map(s => average(s)))
     }
   }
 

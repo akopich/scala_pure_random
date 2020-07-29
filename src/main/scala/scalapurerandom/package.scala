@@ -1,5 +1,5 @@
 import breeze.linalg.{DenseMatrix, DenseVector}
-import cats.data.NonEmptyVector
+import cats.data.{NonEmptyList, NonEmptyVector}
 
 package object scalapurerandom extends NatHelperTrait
   with RandomInstances
@@ -13,7 +13,8 @@ package object scalapurerandom extends NatHelperTrait
   type NEV[A] = NonEmptyVector[A]
   def NEV[A] = NonEmptyVector[A] _
 
-
+  type NEL[A] = NonEmptyList[A]
+  def NEL[A] = NonEmptyList[A] _
 
   type DV = DenseVector[Double]
 
