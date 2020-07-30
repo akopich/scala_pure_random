@@ -8,3 +8,5 @@ val cochi: Random[Double] = standardNormal / standardNormal
 ```
 
 See `scalapurerandom.example.Example` for an example. 
+
+![Cats Friendly Badge](https://typelevel.org/cats/img/cats-badge-tiny.png) 
