@@ -114,18 +114,18 @@ trait RandomPure {
     fromState(randomSplit(size(chunkSizes)).map { gens =>
       gens.zipWith(chunkSizes) { (a, b) => (a,b) }.parTraverse{ case(gen, size) =>
         IO { replicateA(size, random).sample(gen).reduce(semi) }
-      }.map(list => list.reduce(semi) |/| n)
+      }.map(_.reduce(semi) |/| n)
     })
   }
 
   def samplePar[T](random: Random[T], n: PosInt)
-                              (implicit cs: ContextShift[IO]): RandomT[IO, NEL[T]] = {
+                  (implicit cs: ContextShift[IO]): RandomT[IO, NEL[T]] = {
     val chunkSizes = getChunkSizes(n)
 
     fromState(randomSplit(size(chunkSizes)).map { gens =>
-      gens.zipWith(chunkSizes) { (a, b) => (a,b) }.parTraverse { case(gen, size) =>
-        IO { replicateA(size, random).sample(gen) }
-      }.map(_.flatten)
+      (gens, chunkSizes).parTupled.parTraverse { case(gen, size) =>
+        IO { NonEmptyChain.fromNonEmptyList(replicateA(size, random).sample(gen)) }
+      }.map(_.reduce.toNonEmptyList)
     })
   }
 
