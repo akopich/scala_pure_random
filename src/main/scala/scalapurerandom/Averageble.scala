@@ -28,14 +28,14 @@ trait AveragebleHelper {
   }
 
   def average[R[_]: Reducible, T: Averageble](fa: R[T])
-                                             (implicit s: HasSize[R, PosInt]): T = average[R, T, Id](fa)
+                                             (implicit s: HasSize[R, PosInt]): T =
+    fa.reduce(implicitly[Averageble[T]].semi.additive) |/| s.size(fa)
 
-  def average[R[_]: Reducible, T: Averageble, F[_]: Applicative](fa: R[F[T]])
-                            (implicit s: HasSize[R, PosInt]): F[T] = {
-    implicit val semi = new Semigroup[F[T]] {
-      override def combine(fx: F[T], fy: F[T]): F[T] = fx.map(x => implicitly[Averageble[T]].semi.plus(x, _)) <*> fy
-    }
-    fa.reduce.map (_ |/| s.size(fa))
+  implicit def averageApplicative[T: Averageble, F[_]: Applicative]: Averageble[F[T]] = new Averageble[F[T]] {
+    override val semi: AdditiveSemigroup[F[T]] = (fx: F[T], fy: F[T]) =>
+      fx.map(x => implicitly[Averageble[T]].semi.plus(x, _)) <*> fy
+
+    override def |/|(x: F[T], cnt: PosInt): F[T] = x.map(_ |/| cnt)
   }
 
   implicit def intAverageble = new Averageble[Int] {
