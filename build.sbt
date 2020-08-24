@@ -6,7 +6,7 @@ scalaVersion := "2.13.3"
 
 crossScalaVersions := Seq("2.13.3", "2.12.12")
 
-scalacOptions ++= Seq("-deprecation", "-feature", "-language:postfixOps", "-language:implicitConversions", "-Ymacro-annotations")
+scalacOptions ++= Seq("-deprecation", "-feature", "-language:postfixOps", "-language:implicitConversions", "-Ymacro-annotations", "-language:higherKinds")
 
 addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
 

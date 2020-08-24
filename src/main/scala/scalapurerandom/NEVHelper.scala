@@ -1,6 +1,6 @@
 package scalapurerandom
 
-import cats.data.NonEmptyVector
+import cats.data.{NonEmptyList, NonEmptyVector}
 
 trait NEVHelper {
 
@@ -22,6 +22,11 @@ trait NEVHelper {
 
   def toNEV[T](ts: Seq[T]): NEV[T] = ts match {
     case head +: tail => NonEmptyVector(head, tail.toVector)
+    case _ => throw EmptySeqToNEVException()
+  }
+
+  def toNEL[T](ts: Seq[T]): NEL[T] = ts match {
+    case head +: tail => NonEmptyList(head, tail.toList)
     case _ => throw EmptySeqToNEVException()
   }
 

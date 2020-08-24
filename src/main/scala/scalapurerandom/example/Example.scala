@@ -1,5 +1,7 @@
 package scalapurerandom.example
 
+import java.lang.management.ManagementFactory
+
 import cats._
 import cats.data._
 import cats.implicits._
@@ -45,9 +47,13 @@ object Example extends IOApp {
       }
     }
 
-    List(exampleWithDoubles, exampleWithVectors, exampleCochi).sequence
-      .sample(getGen(13L))
-      .reduce(_ *> _)
-      .as(ExitCode.Success)
+    val examplePar: RandomT[IO, Unit] = sampleMeanPar(nonStandardNormal, pow(p"2", p"22")).map { mean =>
+      println(s"Mean estimated in parallel is $mean")
+    }
+
+    val io: IO[List[Unit]] = (List(exampleWithDoubles, exampleWithVectors, exampleCochi)
+      .map(fromState(_)) :+ examplePar).sequence.sample(getGen(13L))
+
+    io.as(ExitCode.Success)
   }
 }

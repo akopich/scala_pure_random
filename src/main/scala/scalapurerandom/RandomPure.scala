@@ -3,7 +3,6 @@ package scalapurerandom
 import breeze.numerics.log
 import cats.data.{IndexedStateT, NonEmptyList, NonEmptyVector, State, StateT}
 import spire.random.rng.MersenneTwister64
-import scalapurerandom.TimesScalar.ops._
 import breeze.linalg.{DenseVector, cholesky}
 import cats._
 import cats.data._
@@ -37,6 +36,10 @@ trait RandomPure {
 
   implicit class RichRandom[T](r: Random[T]) {
     def sample(gen: Gen): T = r.runA(gen).value
+  }
+
+  implicit class RichRandomT[M[_]: Monad, T](r: RandomT[M, T]) {
+    def sample(gen: Gen): M[T] = r.runA(gen)
   }
 
   def times[T: TimesScalar](xr: Random[T], yr: Random[Double]): Random[T] = for {
@@ -104,12 +107,34 @@ trait RandomPure {
   }
 
   def sampleMeanPar[T: Averageble](random: Random[T], n: PosInt)
-                                           (implicit cs: ContextShift[IO]): Random[IO[T]] = {
-    randomSplit(n).map { gens =>
-      gens.parTraverse(gen => IO { random.sample(gen) } )
-          .map(s => average(s))
-    }
+                                  (implicit cs: ContextShift[IO]): RandomT[IO, T] = {
+    val chunkSizes = getChunkSizes(n)
+    val semi = implicitly[Averageble[T]].semi.additive
+
+    fromState(randomSplit(size(chunkSizes)).map { gens =>
+      gens.zipWith(chunkSizes) { (a, b) => (a,b) }.parTraverse{ case(gen, size) =>
+        IO { replicateA(size, random).sample(gen).reduce(semi) }
+      }.map(list => list.reduce(semi) |/| n)
+    })
   }
+
+  def samplePar[T](random: Random[T], n: PosInt)
+                              (implicit cs: ContextShift[IO]): RandomT[IO, NEL[T]] = {
+    val chunkSizes = getChunkSizes(n)
+
+    fromState(randomSplit(size(chunkSizes)).map { gens =>
+      gens.zipWith(chunkSizes) { (a, b) => (a,b) }.parTraverse { case(gen, size) =>
+        IO { replicateA(size, random).sample(gen) }
+      }.map(_.flatten)
+    })
+  }
+
+
+  private def getChunkSizes(n: PosInt) =  toNEL((0 until n.toInt)
+      .groupBy(_ % Runtime.getRuntime.availableProcessors).toSeq
+      .map(_._2.length)
+      .filter(_ > 0)
+      .map(PosInt.apply))
 
   def sampleMean[M[_]: Monad, T: Averageble](random: RandomT[M, T], n : PosInt): RandomT[M, T] =
     replicateA(n, random).map(x => average(x))

@@ -6,7 +6,7 @@ import simulacrum._
   @op("*") def times(x: A, y: Double): A
 }
 
-trait TimesScalarHelper {
+trait TimesScalarHelper extends TimesScalar.ToTimesScalarOps {
   implicit val dvTimesScalar = new TimesScalar[DV] {
     override def times(x: DV, y: Double): DV = x * y
   }
