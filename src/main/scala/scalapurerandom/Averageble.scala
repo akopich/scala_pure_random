@@ -9,6 +9,8 @@ import cats._
 import cats.data._
 import cats.implicits._
 
+import scala.reflect.ClassTag
+
 trait Averageble[T] { self =>
   val semi: AdditiveSemigroup[T]
 
@@ -27,9 +29,9 @@ trait AveragebleHelper {
     def |/|(cnt: PosInt): T = implicitly[Averageble[T]].|/|(value, cnt)
   }
 
-  def average[R[_]: Reducible, T: Averageble](fa: R[T])
-                                             (implicit s: HasSize[R, PosInt]): T =
-    fa.reduce(implicitly[Averageble[T]].semi.additive) |/| s.size(fa)
+  def average[R[_]: PSReducible, T: Averageble](fa: R[T])
+                                                         (implicit s: HasSize[R, PosInt]): T =
+    fa.preduce(implicitly[Averageble[T]].semi.additive) |/| s.size(fa)
 
   implicit def averageApplicative[T: Averageble, F[_]: Applicative]: Averageble[F[T]] = new Averageble[F[T]] {
     override val semi: AdditiveSemigroup[F[T]] = (fx: F[T], fy: F[T]) =>

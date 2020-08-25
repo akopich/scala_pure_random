@@ -10,7 +10,8 @@ package object scalapurerandom extends NatHelperTrait
   with HasSizeHelper
   with AveragebleHelper
   with BreezeInstances
-  with PSFunctor.ToPSFunctorOps {
+  with PSFunctor.ToPSFunctorOps
+  with PSReducible.ToPSReducibleOps {
 
   type NEV[A] = NonEmptyVector[A]
 

@@ -1,7 +1,7 @@
 package scalapurerandom
 
 import algebra.ring.{AdditiveMonoid, AdditiveSemigroup, MultiplicativeMonoid, MultiplicativeSemigroup, Rng}
-import cats.Applicative
+import cats.{Applicative, Traverse}
 import cats.data.{NonEmptyList, NonEmptyVector}
 import cats.kernel.Eq
 import spire.syntax.field._
@@ -46,6 +46,11 @@ trait NatHelperTrait { self =>
   def replicateA[F[_], A](n: PosInt, fa: F[A])(implicit F: Applicative[F]): F[NEL[A]] = {
     val tail = F.replicateA(n.dec.toInt, fa)
     F.map2(fa, tail)(NonEmptyList.apply)
+  }
+
+  def replicateAV[F[_], A](n: PosInt, fa: F[A])(implicit F: Applicative[F]): F[NEV[A]] = {
+    val tail = Vector.fill(n.dec.toInt)(fa).sequence
+    F.map2(fa, tail)(NonEmptyVector.apply)
   }
 
   implicit def wrapContextPos(sc: StringContext): PosHelper = new PosHelper(sc)

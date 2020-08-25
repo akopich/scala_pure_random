@@ -136,26 +136,33 @@ trait RandomPure {
       .filter(_ > 0)
       .map(PosInt.apply))
 
-  def sampleMean[M[_]: Monad, T: Averageble](random: RandomT[M, T], n : PosInt): RandomT[M, T] =
+  def sampleMean[M[_]: Monad, T: Averageble](random: RandomT[M, T], n : PosInt)
+                                            (implicit nelReducer: PSReducible[NEL]): RandomT[M, T] =
     replicateA(n, random).map(x => average(x))
 
   def sampleMeanVarGeneralized[M[_]: Monad, T: Averageble, Outer: Averageble](random: RandomT[M, T], n: PosInt)
                                                                              (minus: (T, T) => T)
-                                                                             (outer: T => Outer): RandomT[M, (T, Outer)] = {
+                                                                             (outer: T => Outer)
+                                                              (implicit nelReducer: PSReducible[NEL],
+                                                               nelFunctor: PSFunctor[NEL]): RandomT[M, (T, Outer)] = {
     replicateA(n, random).map { s =>
       val m = average(s)
-      (m, average(s.map { v =>
+      (m, average(s.pmap { v =>
         val centered = minus(v, m)
         outer(centered)
       }))
     }
   }
 
-  def sampleMeanVar[M[_]: Monad](random: RandomT[M, Double], n: PosInt): RandomT[M, (Double, Double)] = {
+  def sampleMeanVar[M[_]: Monad](random: RandomT[M, Double], n: PosInt)
+                                (implicit nelReducer: PSReducible[NEL],
+                                 nelFunctor: PSFunctor[NEL]): RandomT[M, (Double, Double)] = {
     sampleMeanVarGeneralized(random, n) { (v, m) => v - m} { centered => centered * centered }
   }
 
-  def sampleMeanAndCov[M[_]: Monad](random: RandomT[M, DV], n : PosInt): RandomT[M, (DV, DM)] = {
+  def sampleMeanAndCov[M[_]: Monad](random: RandomT[M, DV], n : PosInt)
+                                   (implicit nelReducer: PSReducible[NEL],
+                                    nelFunctor: PSFunctor[NEL]): RandomT[M, (DV, DM)] = {
     sampleMeanVarGeneralized(random, n) { (v, m) => v - m} { centered => centered * centered.t }
   }
 }
