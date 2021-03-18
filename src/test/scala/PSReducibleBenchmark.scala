@@ -1,5 +1,6 @@
 import org.scalameter.api._
 import scalapurerandom._
+import RandomMT._
 
 object PSReducibleBenchmark extends Bench.LocalTime {
   val sizes = Gen.range("size")(1000000, 3000000, 1000000)

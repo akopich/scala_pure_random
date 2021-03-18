@@ -11,6 +11,7 @@ import breeze.linalg.{DenseVector, diag}
 import scalapurerandom._
 import ParReducibleInstance._
 import ParFunctorInstances._
+import RandomMT._
 
 object Example extends IOApp {
 

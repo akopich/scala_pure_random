@@ -2,35 +2,38 @@ package scalapurerandom
 
 import algebra.ring.AdditiveSemigroup
 import algebra.ring.Field
+import cats.data.State
 import spire.implicits._
 
-class RandomSemi[T: AdditiveSemigroup] extends AdditiveSemigroup[Random[T]] {
-  override def plus(xr: Random[T], yr: Random[T]): Random[T] =  for {
+class RandomSemi[G, T: AdditiveSemigroup] extends AdditiveSemigroup[State[G, T]] {
+  override def plus(xr: State[G, T], yr: State[G, T]): State[G, T] =  for {
     x <- xr
     y <- yr
   } yield x + y
 }
 
-class RandomField[F : Field] extends RandomSemi[F] with Field[Random[F]] {
-  override def div(xr: Random[F], yr: Random[F]): Random[F] = for {
+class RandomField[G, F : Field] extends RandomSemi[G, F] with Field[State[G, F]] {
+  override def div(xr: State[G, F], yr: State[G, F]): State[G, F] = for {
     x <- xr
     y <- yr
   } yield x / y
 
-  override def one: Random[F] = const(implicitly[Field[F]].one)
+  private def const(f: F) = State { (rng: G) => (rng, f) }
 
-  override def negate(xr: Random[F]): Random[F] = xr.map(x => -x)
+  override def one: State[G, F] = const(implicitly[Field[F]].one)
 
-  override def zero: Random[F] = const(implicitly[Field[F]].zero)
+  override def negate(xr: State[G, F]): State[G, F] = xr.map(x => -x)
 
-  override def times(xr: Random[F], yr: Random[F]): Random[F] = for {
+  override def zero: State[G, F] = const(implicitly[Field[F]].zero)
+
+  override def times(xr: State[G, F], yr: State[G, F]): State[G, F] = for {
     x <- xr
     y <- yr
   } yield x * y
 }
 
 trait RandomInstances {
-  implicit val randomDVSemi: AdditiveSemigroup[Random[DV]] = new RandomSemi[DV]
+  implicit def randomDVSemi[G]: AdditiveSemigroup[State[G, DV]] = new RandomSemi[G, DV]
 
-  implicit val randomDoubleField: Field[Random[Double]] = new RandomField[Double]
+  implicit def randomDoubleField[G]: Field[State[G, Double]] = new RandomField[G, Double]
 }

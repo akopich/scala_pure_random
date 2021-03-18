@@ -5,6 +5,7 @@ import scalapurerandom._
 import cats._
 import cats.data._
 import cats.implicits._
+import RandomMT._
 
 import cats.effect.{ContextShift, IO}
 import scala.concurrent.ExecutionContext

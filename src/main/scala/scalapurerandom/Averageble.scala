@@ -81,10 +81,10 @@ trait AveragebleHelper {
     } yield implicitly[Averageble[A]].semi.plus(x, y)
   }
 
-  implicit def randomAverageble[A: Averageble] : Averageble[Random[A]] = new Averageble[Random[A]] {
+  implicit def randomAverageble[G, A: Averageble] : Averageble[State[G, A]] = new Averageble[State[G, A]] {
     implicit private val semiA = implicitly[Averageble[A]].semi
-    override val semi: AdditiveSemigroup[Random[A]] = new RandomSemi[A]
+    override val semi: AdditiveSemigroup[State[G, A]] = new RandomSemi[G, A]
 
-    override def |/|(x: Random[A], cnt: PosInt): Random[A] = x.map(_ |/| cnt)
+    override def |/|(x: State[G, A], cnt: PosInt): State[G, A] = x.map(_ |/| cnt)
   }
 }
